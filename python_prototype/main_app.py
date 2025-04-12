@@ -11,8 +11,9 @@ from tkinter import filedialog
 from tkinter import ttk
 from PIL import Image
 import io
-
-from transformers import TrOCRProcessor, VisionEncoderDecoderModel
+from test_logic import FlashCardDeck
+from ocr_checker import ImageProcessor
+import time
 
 class AlphaBeta:
     def __init__(self, root):
@@ -26,9 +27,9 @@ class AlphaBeta:
         
         # text box for vocabulary
         self.flashcard = tk.Label(root, height=10, width=20, wraplength=150,
-                                  text="nèung",
+                                  text="select\nflashcard\nlist",
                                   font=('Courier New', 20),
-                                  bd=3, relief=tk.SOLID)
+                                  bd=3, relief=tk.SOLID, bg="white")
         
         # text box for writing
         self.draw_here = tk.Label(root, height=2, width=10, wraplength=100,
@@ -36,7 +37,8 @@ class AlphaBeta:
                                   font=('Courier New', 15))
         
         # create a canvas widget for drawing
-        self.canvas = tk.Canvas(root, bg="white", width=300, height=300, bd=3, relief=tk.SOLID)
+        self.canvas = tk.Canvas(root, bg="white", width=300, height=300, 
+                                bd=3, relief=tk.SOLID)
         self.canvas.bind("<B1-Motion>", self.draw)
         
         
@@ -74,7 +76,7 @@ class AlphaBeta:
                                        font=('Courier New', 15),
                                        command=self.submit_action)
         
-        # Pack the buttons side by side
+        # pack the buttons side by side
         self.submit_button.pack(side=tk.RIGHT, padx=(30,0))
         self.clear_button.pack(side=tk.LEFT, padx=(0,30))
 
@@ -87,7 +89,10 @@ class AlphaBeta:
         self.slider.grid(row=1, column=2, padx=(15, 50), pady=(5, 30))
         self.button_frame.grid(row=2, column=1)
         
-    
+        # create ocr object instance for evaluation
+        self.image_processor = ImageProcessor()
+        
+        
     # set brush size
     def on_slide(self, value):
         self.brush_size = self.slider.get()
@@ -108,15 +113,27 @@ class AlphaBeta:
                 print(f"You selected the file: {file_path}")
                 self.selected_characters.set(file_path)
         else:
-            print(f"You selected: {selection}")
             self.selected_characters.set(selection)
+            flashcard_deck_path = f'./flashcard_decks/{selection}_deck.csv';
+            self.flashcard_deck = FlashCardDeck(flashcard_deck_path)
+            self.flashcard.config(text=self.flashcard_deck.get_current_flashcard_question())
             
     def clear_action(self):
         self.canvas.delete("all")
 
     def submit_action(self):
         image = self.get_image_from_canvas()
-        raise NotImplementedError("ocr not implemented yet")
+        ocr_result = self.image_processor.get_ocr_result(image)
+        # for logging and debugging
+        print(ocr_result)
+        flashcard_evaluation = self.flashcard_deck.check_solution(ocr_result)
+        if flashcard_evaluation:
+            self.flashcard_deck.select_active_flashcard()
+            self.flashcard.config(text=self.flashcard_deck.get_current_flashcard_question())
+            self.clear_action()
+        else:
+            self.clear_action()
+            
         
     def get_image_from_canvas(self):
         # postscript representation of the canvas
@@ -124,8 +141,7 @@ class AlphaBeta:
         
         # create a PIL Image from the PostScript data
         image = Image.open(io.BytesIO(ps.encode('utf-8')))
-        return image
-            
+        return image    
 
 if __name__ == "__main__":
     # create main window
@@ -135,4 +151,5 @@ if __name__ == "__main__":
     app = AlphaBeta(root)
     
     # run application
-    root.mainloop()
+    app.root.mainloop()
+    
