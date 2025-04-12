@@ -30,5 +30,6 @@ class FlashCardDeck:
         
     def get_current_flashcard_question(self):
         return self.active_flashcard[0]
-        
-flashcard_deck = FlashCardDeck("./flashcard_decks/numbers_deck.csv")
+
+if __name__ == "__main__":        
+    flashcard_deck = FlashCardDeck("../flashcard_decks/numbers_deck.csv")

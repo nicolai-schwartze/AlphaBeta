@@ -114,7 +114,7 @@ class AlphaBeta:
                 self.selected_characters.set(file_path)
         else:
             self.selected_characters.set(selection)
-            flashcard_deck_path = f'./flashcard_decks/{selection}_deck.csv';
+            flashcard_deck_path = f'../flashcard_decks/{selection}_deck.csv';
             self.flashcard_deck = FlashCardDeck(flashcard_deck_path)
             self.flashcard.config(text=self.flashcard_deck.get_current_flashcard_question())
             
