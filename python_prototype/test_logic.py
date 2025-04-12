@@ -15,8 +15,9 @@ class FlashCardDeck:
             csv_reader = csv.reader(file)
             header = next(csv_reader) # skip the header
             self._test_pairs = list(csv_reader)
-            
-        self._test_pairs = [pair[0].split(';') for pair in self._test_pairs]
+        
+        self._test_pairs = [pair[0].replace("\\n", "\n") for pair in self._test_pairs]
+        self._test_pairs = [pair.split(";") for pair in self._test_pairs]
         self.select_active_flashcard()
         
     def select_active_flashcard(self):
@@ -32,4 +33,4 @@ class FlashCardDeck:
         return self.active_flashcard[0]
 
 if __name__ == "__main__":        
-    flashcard_deck = FlashCardDeck("../flashcard_decks/numbers_deck.csv")
+    flashcard_deck = FlashCardDeck("../flashcard_decks/consonants_deck.csv")
